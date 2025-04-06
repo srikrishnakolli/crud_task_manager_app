@@ -20,11 +20,11 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _loading = true);
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailCtrl.text,
+        email: emailCtrl.text.trim(),
         password: passwordCtrl.text,
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
     } finally {
       setState(() => _loading = false);
     }
@@ -37,37 +37,47 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: const EdgeInsets.all(24),
         child: Center(
           child: SingleChildScrollView(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  Text("Welcome Back!", style: Theme.of(context).textTheme.headlineMedium),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: emailCtrl,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(labelText: "Email"),
-                    validator: (val) => val!.isEmpty ? "Enter email" : null,
+            child: Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              elevation: 6,
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      Text("Welcome Back!", style: Theme.of(context).textTheme.headlineMedium),
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        controller: emailCtrl,
+                        decoration: const InputDecoration(labelText: "Email"),
+                        validator: (val) => val!.isEmpty ? "Enter email" : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: passwordCtrl,
+                        obscureText: true,
+                        decoration: const InputDecoration(labelText: "Password"),
+                        validator: (val) => val!.length < 6 ? "Min 6 characters" : null,
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: _loading ? null : _login,
+                        child: _loading
+                            ? const CircularProgressIndicator()
+                            : const Text("Login"),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                        ),
+                        child: const Text("Don't have an account? Register"),
+                      )
+                    ],
                   ),
-                  TextFormField(
-                    controller: passwordCtrl,
-                    obscureText: true,
-                    decoration: const InputDecoration(labelText: "Password"),
-                    validator: (val) => val!.length < 6 ? "Minimum 6 characters" : null,
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _loading ? null : _login,
-                    child: _loading
-                        ? const CircularProgressIndicator()
-                        : const Text("Login"),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const RegisterScreen())),
-                    child: const Text("Don't have an account? Register"),
-                  )
-                ],
+                ),
               ),
             ),
           ),

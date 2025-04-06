@@ -15,27 +15,40 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   String priority = "Medium";
 
   Future<void> _submitTask() async {
-    if (!_formKey.currentState!.validate()) return;
+  if (!_formKey.currentState!.validate()) return;
 
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('tasks')
-          .add({
-        'title': taskCtrl.text,
-        'completed': false,
-        'priority': priority,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
-    }
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    print("User not logged in");
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("User not logged in")),
+    );
+    return;
   }
+
+  print("Saving task for user: ${user.uid}");
+
+  try {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('tasks')
+        .add({
+      'title': taskCtrl.text.trim(),
+      'completed': false,
+      'priority': priority,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+    print("✅ Task saved successfully");
+    Navigator.pop(context);
+  } catch (e) {
+    print("❌ Error saving task: $e");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error saving task: $e")),
+    );
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +63,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
               TextFormField(
                 controller: taskCtrl,
                 decoration: const InputDecoration(labelText: "Task Title"),
-                validator: (val) => val!.isEmpty ? "Enter task name" : null,
+                validator: (val) => val!.isEmpty ? "Enter task title" : null,
               ),
               const SizedBox(height: 20),
               DropdownButtonFormField<String>(

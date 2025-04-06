@@ -19,12 +19,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _loading = true);
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailCtrl.text,
+        email: emailCtrl.text.trim(),
         password: passwordCtrl.text,
       );
-      Navigator.pop(context); // Go back to login
+      Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
     } finally {
       setState(() => _loading = false);
     }
@@ -36,30 +36,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
       appBar: AppBar(title: const Text("Register")),
       body: Padding(
         padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: emailCtrl,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(labelText: "Email"),
-                validator: (val) => val!.isEmpty ? "Enter email" : null,
+        child: Center(
+          child: SingleChildScrollView(
+            child: Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              elevation: 6,
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: emailCtrl,
+                        decoration: const InputDecoration(labelText: "Email"),
+                        validator: (val) => val!.isEmpty ? "Enter email" : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: passwordCtrl,
+                        obscureText: true,
+                        decoration: const InputDecoration(labelText: "Password"),
+                        validator: (val) => val!.length < 6 ? "Min 6 characters" : null,
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: _loading ? null : _register,
+                        child: _loading
+                            ? const CircularProgressIndicator()
+                            : const Text("Create Account"),
+                      )
+                    ],
+                  ),
+                ),
               ),
-              TextFormField(
-                controller: passwordCtrl,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: "Password"),
-                validator: (val) => val!.length < 6 ? "Min 6 characters" : null,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _loading ? null : _register,
-                child: _loading
-                    ? const CircularProgressIndicator()
-                    : const Text("Create Account"),
-              )
-            ],
+            ),
           ),
         ),
       ),
